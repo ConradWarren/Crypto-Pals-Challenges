@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <openssl/evp.h>
+#include "../AES.h"
 
 inline int Base_64_Val(char x){
 
@@ -58,28 +58,15 @@ std::string Decrypt_AES_128_ECB(const std::string& input_file_path, const std::s
 	}
 	file.close();
 	
-	cypher = Base_64_to_Bytes(input_str);	
-	decryptedText.resize(cypher.length() + EVP_CIPHER_block_size(EVP_aes_128_ecb()), '\0');
-
-
-	OpenSSL_add_all_algorithms();
+	cypher = Base_64_to_Bytes(input_str);
 	
-	EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-	EVP_DecryptInit_ex(ctx, EVP_aes_128_ecb(), nullptr, (const unsigned char*)key.c_str(), nullptr);
-	
-	
-	if (EVP_DecryptUpdate(ctx, (unsigned char*)decryptedText.c_str(), &decrypted_length, (const unsigned char*)cypher.c_str(), cypher.length()) != 1) {
-        	std::cerr << "Error during decryption" << std::endl;
-		exit(EXIT_FAILURE);
-    	}
-	
-	if (EVP_DecryptFinal_ex(ctx, reinterpret_cast<unsigned char *>(&decryptedText[0] + decrypted_length), &output_length) != 1) {
-		std::cerr << "Error finalizing decryption" << std::endl;
-		exit(EXIT_FAILURE);
+	for(int i = 0; i<cypher.size(); i += 16){
+		std::string round_key(176, '\0');
+		std::string plain_text_block(16, '\0');
+		aes_key_schedule_128((const unsigned char*)key.c_str(), (unsigned char*)round_key.c_str());
+		aes_decrypt_128((const unsigned char*)round_key.c_str(), (const unsigned char*)cypher.substr(i, 16).c_str(), (unsigned char*)plain_text_block.c_str());
+		decryptedText += plain_text_block;
 	}
-	
-	decryptedText.resize(decrypted_length + output_length);
-	EVP_CIPHER_CTX_free(ctx);
 	
 	return decryptedText;
 }

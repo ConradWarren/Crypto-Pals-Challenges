@@ -9,11 +9,12 @@ void Print_Byte_String(const std::string& byte_string){
 		
 		if(std::isalnum(byte_string[i]) || std::isspace(byte_string[i]) || std::ispunct(byte_string[i])){
 			std::cout<<byte_string[i];
-		}else{
-			int num = (((int)byte_string[i]) >> 4);
-			std::cout<<"\\x"<<(char)((num > 9) ? 'a' + num - 10 : '0' + num);
-			num = ((int)byte_string[i]) & 0xf;
-			std::cout<< (char)((num > 9) ? 'a' + num - 10 : '0' + num);
+		}
+		if(true){
+			int num = (((unsigned char)byte_string[i]) >> 4);	
+			std::cout<<"\\x"<<(char)((num > 9) ? num - 10 + 'a' : '0' + num);
+			num = ((int)byte_string[i]) & 0xf;	
+			std::cout<< (char)((num > 9) ? num - 10 + 'a' : '0' + num);
 		}
 	}
 	
